@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+
+# Python script that monitors the battery status and sends notifications when the
+# battery's capacity reaches a critical level.
+# It reads the battery status and capacity from system files and then prints a pretty-formatted
+# status message for the battery.
+# It's for use in minimalist windows managers bars (e.g. dwm, qtile).
+
