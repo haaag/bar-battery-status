@@ -104,6 +104,8 @@ ignore = [
   "PLR0915",
   # Single-quote preferred
   "Q000",
+  # Ignore shadowing a Python
+  "A002"
 ]
 unfixable = [
   # Don't touch unused imports
