@@ -6,9 +6,25 @@
 # status message for the battery.
 # It's for use in minimalist windows managers bars (e.g. dwm, qtile).
 
+from __future__ import annotations
+
 import os
 import subprocess
+from dataclasses import dataclass
 from enum import Enum, auto
+from typing import ClassVar
+
+SEPARATOR_1 = os.environ.get('SEP1', '')
+SEPARATOR_2 = os.environ.get('SEP2', '')
+
+
+def read_line(file: str) -> str:
+    try:
+        with open(file) as f:
+            return f.readline().strip()
+    except FileNotFoundError as err:
+        msg = f'{file=} not found.'
+        raise FileNotFoundError(msg) from err
 
 
 class BatStatus(Enum):
@@ -100,3 +116,42 @@ class System:
             body,
         ]
         System.run(args)
+
+
+@dataclass
+class Battery:
+    status: str
+    current_capacity: int
+    critial_capacity: int
+
+    STATUS: ClassVar[dict[str, BatStatus]] = {
+        'Charging': BatStatus.Charging,
+        'Discharging': BatStatus.Discharging,
+        'Full': BatStatus.Full,
+        'Unknown': BatStatus.Unknown,
+    }
+
+    @property
+    def current_status(self) -> BatStatus:
+        return self.STATUS.get(self.status, BatStatus.Unknown)
+
+    @classmethod
+    def get_battery(cls) -> Battery:
+        critical_capacity = 10
+        bat_status = read_line(System.power_supply_status)
+        bat_capacity = int(read_line(System.power_supply_capacity))
+        return cls(bat_status, bat_capacity, critical_capacity)
+
+    def check_battery_status(self) -> None:
+        if self.current_capacity <= self.critial_capacity:
+            System.send_notification(
+                title='Battery',
+                body=f'Capacity critical: {self.current_capacity}%',
+                icon=System.battery_crit_cap_icon,
+                bin='notify-send',
+                urgency='critical',
+            )
+
+    def print_pretty_status(self) -> None:
+        icon = Icons.get_icon_for_capacity(self.current_status, self.current_capacity)
+        print(f'{SEPARATOR_1}{icon} {self.current_capacity}% {self.status}{SEPARATOR_2}')
