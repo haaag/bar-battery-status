@@ -6,6 +6,8 @@
 # status message for the battery.
 # It's for use in minimalist windows managers bars (e.g. dwm, qtile).
 
+import os
+import subprocess
 from enum import Enum, auto
 
 
@@ -46,3 +48,42 @@ ICONS_MAPS: dict[BatStatus, IconsMap] = {
     BatStatus.Discharging: ICONS_DISCHARGING,
     BatStatus.Full: ICONS_FULL,
 }
+
+
+class System:
+    battery_name: str = os.environ.get('BATTERY', 'BAT0')
+    battery_crit_cap_icon: str = 'battery-level-10-symbolic'
+    power_supply_status: str = f'/sys/class/power_supply/{battery_name}/status'
+    power_supply_capacity: str = f'/sys/class/power_supply/{battery_name}/capacity'
+
+    @staticmethod
+    def run(args: list[str]) -> int:
+        try:
+            completed_process = subprocess.run(
+                args,  # noqa: S603
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                text=True,
+                check=True,
+            )
+            return completed_process.returncode
+        except subprocess.SubprocessError as e:
+            raise e
+
+    @staticmethod
+    def send_notification(
+        title: str,
+        body: str,
+        icon: str,
+        bin: str,
+        urgency: str = 'normal',
+    ) -> None:
+        args = [
+            bin,
+            '--app-name=Battery',
+            f'--icon={icon}',
+            f'--urgency={urgency}',
+            title,
+            body,
+        ]
+        System.run(args)
