@@ -50,6 +50,19 @@ ICONS_MAPS: dict[BatStatus, IconsMap] = {
 }
 
 
+class Icons:
+    @staticmethod
+    def get_icon_map(status: BatStatus) -> IconsMap:
+        return ICONS_MAPS.get(status, ICONS_UNKNOWN)
+
+    @staticmethod
+    def get_icon_for_capacity(status: BatStatus, capacity: int) -> str:
+        for range_start, range_end, icon in Icons.get_icon_map(status):
+            if range_start <= capacity <= range_end:
+                return icon
+        return ICONS_UNKNOWN[0][2]
+
+
 class System:
     battery_name: str = os.environ.get('BATTERY', 'BAT0')
     battery_crit_cap_icon: str = 'battery-level-10-symbolic'
