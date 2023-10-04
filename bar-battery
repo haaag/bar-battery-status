@@ -17,6 +17,8 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import ClassVar
 
+POWER_SUPPLY_STATUS = '/sys/class/power_supply/{}/status'
+POWER_SUPPLY_CAPACITY = '/sys/class/power_supply/{}/capacity'
 PROGRAM_NAME = Path(__file__).name
 
 USAGE = f"""\
@@ -76,6 +78,7 @@ ICONS_CHARGING: IconsMap = [
 ]
 ICONS_UNKNOWN: IconsMap = [(1, 100, '')]
 ICONS_FULL: IconsMap = [(1, 100, '')]
+ICONS_HEALTH: IconsMap = [(1, 100, '')]
 ICONS_MAPS: dict[BatStatus, IconsMap] = {
     BatStatus.Charging: ICONS_CHARGING,
     BatStatus.Discharging: ICONS_DISCHARGING,
@@ -97,11 +100,6 @@ class Icons:
 
 
 class System:
-    battery_name: str = os.environ.get('BATTERY', 'BAT0')
-    battery_crit_cap_icon: str = 'battery-level-10-symbolic'
-    power_supply_status: str = f'/sys/class/power_supply/{battery_name}/status'
-    power_supply_capacity: str = f'/sys/class/power_supply/{battery_name}/capacity'
-
     @staticmethod
     def run(args: list[str]) -> int:
         try:
@@ -137,9 +135,9 @@ class System:
 
 @dataclass
 class Battery:
-    status: str
-    current_capacity: int
-    critial_capacity: int
+    name: str
+    critical_capacity: int = 10
+    critical_capacity_icon: str = 'battery-level-10-symbolic'
 
     STATUS: ClassVar[dict[str, BatStatus]] = {
         'Charging': BatStatus.Charging,
@@ -152,31 +150,41 @@ class Battery:
     def current_status(self) -> BatStatus:
         return self.STATUS.get(self.status, BatStatus.Unknown)
 
-    @classmethod
-    def get_battery(cls) -> Battery:
-        critical_capacity = 10
-        bat_status = read_line(System.power_supply_status)
-        bat_capacity = int(read_line(System.power_supply_capacity))
-        return cls(bat_status, bat_capacity, critical_capacity)
+    @property
+    def health(self) -> int:
+        return int(3677000 / 3677000 * 100)
+
+    @property
+    def status(self) -> str:
+        return read_line(POWER_SUPPLY_STATUS.format(self.name))
+
+    @property
+    def capacity(self) -> int:
+        return int(read_line(POWER_SUPPLY_CAPACITY.format(self.name)))
 
     def check_battery_status(self) -> None:
-        if self.current_capacity <= self.critial_capacity:
+        if self.capacity <= self.critical_capacity:
             System.send_notification(
                 title='Battery',
-                body=f'Capacity critical: {self.current_capacity}%',
-                icon=System.battery_crit_cap_icon,
+                body=f'Capacity critical: {self.capacity}%',
+                icon=self.critical_capacity_icon,
                 bin='notify-send',
                 urgency='critical',
             )
 
-    def print_pretty_status(self, left_sep: str = ' ', right_sep: str = ' ') -> None:
-        icon = Icons.get_icon_for_capacity(self.current_status, self.current_capacity)
-        print(f'{left_sep}{icon} {self.current_capacity}% {self.status}{right_sep}')
+
+def get_separators(args: argparse.Namespace) -> tuple[str, str]:
+    if args.no_sep:
+        return '', ''
+    return os.environ.get('SEP1', ''), os.environ.get('SEP2', '')
 
 
-def main() -> int:
-    left_sep = os.environ.get('SEP1', '')
-    right_sep = os.environ.get('SEP2', '')
+def get_health_string(args, battery):
+    if args.health:
+        health_icon = '' if args.no_health_icon else f' {ICONS_HEALTH[0][2]}'
+        return f'{health_icon} {battery.health}%'
+    return ''
+
 
 def setup_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -203,11 +211,12 @@ def main() -> int:
     battery = Battery(name=args.name)
     battery.check_battery_status()
 
-    if args.no_sep:
-        left_sep = ''
-        right_sep = ''
+    left_sep, right_sep = get_separators(args)
+    icon = '' if args.no_icon else f'{Icons.get_icon_for_capacity(battery.current_status, battery.capacity)} '
+    current_status = '' if args.no_status else f' {battery.status}'
+    health = get_health_string(args, battery)
 
-    battery.print_pretty_status(left_sep, right_sep)
+    print(f'{left_sep}{icon}{battery.capacity}%{current_status}{health}{right_sep}')
     return 0
 
 
