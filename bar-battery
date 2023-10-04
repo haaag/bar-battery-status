@@ -8,15 +8,13 @@
 
 from __future__ import annotations
 
+import argparse
 import os
 import subprocess
 import sys
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import ClassVar
-
-SEPARATOR_1 = os.environ.get('SEP1', '')
-SEPARATOR_2 = os.environ.get('SEP2', '')
 
 
 def read_line(file: str) -> str:
@@ -153,15 +151,27 @@ class Battery:
                 urgency='critical',
             )
 
-    def print_pretty_status(self) -> None:
+    def print_pretty_status(self, left_sep: str = ' ', right_sep: str = ' ') -> None:
         icon = Icons.get_icon_for_capacity(self.current_status, self.current_capacity)
-        print(f'{SEPARATOR_1}{icon} {self.current_capacity}% {self.status}{SEPARATOR_2}')
+        print(f'{left_sep}{icon} {self.current_capacity}% {self.status}{right_sep}')
 
 
 def main() -> int:
+    left_sep = os.environ.get('SEP1', '')
+    right_sep = os.environ.get('SEP2', '')
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--no-sep', action='store_true')
+    args = parser.parse_args()
+
     battery = Battery.get_battery()
     battery.check_battery_status()
-    battery.print_pretty_status()
+
+    if args.no_sep:
+        left_sep = ''
+        right_sep = ''
+
+    battery.print_pretty_status(left_sep, right_sep)
     return 0
 
 
