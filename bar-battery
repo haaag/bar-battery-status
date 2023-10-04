@@ -160,11 +160,29 @@ def main() -> int:
     left_sep = os.environ.get('SEP1', '')
     right_sep = os.environ.get('SEP2', '')
 
-    parser = argparse.ArgumentParser()
+def setup_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawTextHelpFormatter,
+        add_help=False,
+    )
+    parser.add_argument('--name', default='BAT0')
     parser.add_argument('--no-sep', action='store_true')
-    args = parser.parse_args()
+    parser.add_argument('--no-icon', action='store_true')
+    parser.add_argument('--no-status', action='store_true')
+    parser.add_argument('--health', action='store_true')
+    parser.add_argument('--no-health-icon', action='store_true')
+    parser.add_argument('-h', '--help', action='store_true')
+    return parser.parse_args()
 
-    battery = Battery.get_battery()
+
+def main() -> int:
+    args = setup_args()
+
+    if args.help:
+        print(USAGE)
+        return 0
+
+    battery = Battery(name=args.name)
     battery.check_battery_status()
 
     if args.no_sep:
