@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import ClassVar
@@ -155,3 +156,14 @@ class Battery:
     def print_pretty_status(self) -> None:
         icon = Icons.get_icon_for_capacity(self.current_status, self.current_capacity)
         print(f'{SEPARATOR_1}{icon} {self.current_capacity}% {self.status}{SEPARATOR_2}')
+
+
+def main() -> int:
+    battery = Battery.get_battery()
+    battery.check_battery_status()
+    battery.print_pretty_status()
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
