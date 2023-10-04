@@ -14,7 +14,25 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from enum import Enum, auto
+from pathlib import Path
 from typing import ClassVar
+
+PROGRAM_NAME = Path(__file__).name
+
+USAGE = f"""\
+usage: {PROGRAM_NAME} [--name NAME] [--no-sep] [--no-icon] [--no-status] [--health] [--no-health-icon] [-h]
+
+Simple script that monitors the battery status
+
+options:
+    --name              Battery name (default=BAT0)
+    --no-sep            No separator between battery status and capacity
+    --no-icon           No battery icon
+    --no-status         No battery status
+    --health            Show battery health
+    --no-health-icon    No health icon
+    -h, --help          Show this help message
+"""
 
 
 def read_line(file: str) -> str:
