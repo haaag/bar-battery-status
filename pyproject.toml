@@ -25,12 +25,12 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/unknown/bar-battery#readme"
-Issues = "https://github.com/unknown/bar-battery/issues"
-Source = "https://github.com/unknown/bar-battery"
+Documentation = "https://github.com/haaag/bar-battery-status#readme"
+Issues = "https://github.com/haaag/bar-battery-status/issues"
+Source = "https://github.com/haaag/bar-battery-status"
 
 [tool.hatch.version]
-path = "bar_battery/__about__.py"
+path = "bar-battery"
 
 [tool.hatch.envs.default]
 dependencies = ["coverage[toml]>=6.5", "pytest"]
@@ -105,7 +105,7 @@ ignore = [
   # Single-quote preferred
   "Q000",
   # Ignore shadowing a Python
-  "A002"
+  "A002",
 ]
 unfixable = [
   # Don't touch unused imports
