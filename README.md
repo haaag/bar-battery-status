@@ -17,34 +17,20 @@ $ cd bar-battery-status
 $ bar-battery
 ```
 
-## Output
+## Requirements
 
-```python
-ICONS_DISCHARGING: IconsMap = [
-    (1, 10, ''),
-    (11, 20, ''),
-    (21, 30, ''),
-    (31, 40, ''),
-    (41, 50, ''),
-    (51, 60, ''),
-    (61, 70, ''),
-    (71, 80, ''),
-    (81, 90, ''),
-    (91, 94, ''),
-    (95, 100, ''),
-]
-ICONS_CHARGING: IconsMap = [
-    (1, 14, ''),
-    (15, 29, ''),
-    (30, 44, ''),
-    (45, 59, ''),
-    (60, 74, ''),
-    (75, 89, ''),
-    (90, 100, ''),
-]
-ICONS_UNKNOWN: IconsMap = [(1, 100, '')]
-ICONS_FULL: IconsMap = [(1, 100, '')]
-```
+_Patched GUI Font_ is mandatory for icons, the most popular patched fonts are [nerd
+fonts](https://www.nerdfonts.com/).
+
+## Screenshot
+
+<br>
+    <img align="center" src="https://github.com/haaag/bar-battery-status/blob/master/img/icons-screenshot.png?raw=true">
+<br>
+
+## TODO
+
+- [ ] Make animated charging state
 
 ## License
 
